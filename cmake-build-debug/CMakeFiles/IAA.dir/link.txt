@@ -1,0 +1,1 @@
+/usr/bin/c++   -g   CMakeFiles/IAA.dir/main.cpp.o CMakeFiles/IAA.dir/Course.cpp.o CMakeFiles/IAA.dir/Period.cpp.o CMakeFiles/IAA.dir/functions.cpp.o  -o IAA 

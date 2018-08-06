@@ -1,0 +1,204 @@
+%data file for the 10 period bacp
+p=12;
+a=10; /* minimum academic load allowed per period */
+b=24; /* maximum academic load allowed per period */
+c=2; /* minimum amount of courses allowed per period,
+        4 to make problem  tighter*/
+d=10; /* maximum amount of courses allowed per period
+
+ courses = {
+        mat021 ,
+        tel101 ,
+        fis100 ,
+        iwg101 ,
+        hrw101 ,
+        dew100 ,
+        mat022 ,
+        fis110 ,
+        tel102 ,
+        hfw144 ,
+        hrw102 ,
+        dew101 ,
+        mat023 ,
+        fis120 ,
+        elo320 ,
+        elo322 ,
+        hcw100 ,
+        dew110 ,
+        qui010 ,
+        elo204 ,
+        inf239 ,
+        tel131 ,
+        tel132 ,
+        hcw101 ,
+        fis130 ,
+        tel222 ,
+        elo329 ,
+        inf236 ,
+        tel241 ,
+        hcw102 ,
+        mat024 ,
+        tel231 ,
+        elo241 ,
+        elo321 ,
+        inf225 ,
+        hcw200 ,
+        mat270 ,
+        elo211 ,
+        elo212 ,
+        tel211 ,
+        tel360 ,
+        hcw201 ,
+        fis140 ,
+        elo341 ,
+        tel252 ,
+        tel335 ,
+        tel342 ,
+        hcw202 ,
+        tel236 ,
+        iln250 ,
+        tel354 ,
+        tel341 ,
+        tel312 ,
+        tel315 ,
+        iwn170 ,
+        tel343 ,
+        elo328 ,
+        tel317 ,
+        tel329 ,
+        tel011 ,
+        iwn261 ,
+        tel012 ,
+        iwg396 ,
+        iwg397 ,
+        iwg394 ,
+        tel021 ,
+        tel013 ,
+        iwg398 ,
+        iwg399 ,
+        iwg395 };
+
+credit = [
+5,
+3,
+3,
+2,
+2,
+1,
+5,
+3,
+3,
+2,
+2,
+1,
+4,
+4,
+3,
+3,
+2,
+1,
+3,
+4,
+3,
+3,
+3,
+2,
+4,
+3,
+3,
+3,
+3,
+2,
+4,
+3,
+3,
+3,
+3,
+2,
+3,
+3,
+3,
+3,
+3,
+2,
+4,
+3,
+3,
+3,
+3,
+2,
+3,
+3,
+3,
+3,
+3,
+3,
+3,
+3,
+3,
+3,
+3,
+3,
+3,
+3,
+3,
+3,
+5,
+3,
+3,
+3,
+3,
+5
+];
+
+
+prereq ={
+                    < mat022 , mat021 >,
+                    < fis110 , mat021 >,< fis110 , fis100 >
+                    < tel102 , tel101 >,
+                    < dew101 , dew100 >,
+                    < mat023 , mat022 >,
+                    < fis120 , fis110 >,< fis120 , mat022 >
+                    < elo320 , tel102 >
+                    < elo322 , tel101 >
+                    < dew110 , dew101 >
+                    < elo204 , mat022 >
+                    < inf239 , elo320 >
+                    < tel131 , mat022 >,< tel131 , fis120 >
+                    < hcw101 , hcw100 >
+                    < fis130 , fis110 >,< fis130 , mat022 >
+                    < tel222 , fis120 >,< tel222 , mat023 >
+                    < elo329 , tel101 >
+                    < inf236 , inf239 >
+                    < tel241 , elo322 >
+                    < hcw102 , hcw101 >
+                    < mat024 , mat023 >
+                    < tel231 , tel222 >
+                    < elo241 , tel222 >,< elo241 , mat023 >
+                    < elo321 , tel102 >
+                    < inf225 , inf236 >
+                    < hcw200 , hcw102 >
+                    < mat270 , mat024 >
+                    < elo211 , tel131 >
+                    < elo212 , tel131 >
+                    < tel211 , elo204 >,< tel211 , elo322 >
+                    < hcw201 , hcw200 >
+                    < fis140 , fis130 >,< fis140 , fis120 >
+                    < elo341 , elo204 >,< elo341 , tel231 >
+                    < tel252 , elo204 >,< tel252 , tel131 >,< tel252 , tel102 >
+                    < tel335 , elo329 >,< tel335 , inf239 >
+                    < tel342 , tel241 >
+                    < hcw202 , hcw201 >
+                    < tel236 , elo204 >,< tel236 , tel222 >,< tel236 , tel231 >
+                    < iln250 , elo204 >
+                    < tel354 , elo204 >,< tel354 , elo320 >,< tel354 , elo322 >,< tel354 , mat023 >
+                    < tel341 , elo204 >,< tel341 , elo320 >,< tel341 , elo322 >
+                    < tel312 , tel342 >
+                    < tel315 , elo204 >,< tel315 , elo322 >
+                    < iwn170 , mat023 >
+                    < tel343 , elo204 >
+                    < elo328 , elo204 >,< elo328 , elo329 >
+                    < tel317 , elo204 >,< tel317 , elo322 >
+                    < tel329 , tel241 >,< tel329 , tel315 >
+                    < iwg395 , iwg394 >
+                    };
