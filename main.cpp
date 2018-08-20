@@ -107,12 +107,16 @@ int main() {
     float beta = 1;
     int iterations = 1000;
     int maxPheromone = 10;
-    int stagnation = 0;
 
-    srand(2);
+    srand(3);
     vector<Period> bestSolution;
 
     for (int iteration = 0; iteration < iterations; ++iteration) {
+
+        if (iteration % 100)
+            evaporate(courses);
+        if (iteration % 200)
+            stagnate(courses);
 
         vector<vector<Period>> solutions;
 
@@ -242,7 +246,6 @@ int main() {
             }
         }
 
-
         // Increase pheromones
         for (int i = 0; i < parameters[0]; ++i) {
             vector<int> aux = solutions[bestAnt][i].courses;
@@ -260,7 +263,6 @@ int main() {
                     courses[aux[j]].pheromones[i] -= 1;
             }
         }
-
 
         // Detecting stagnation
         /*
@@ -301,30 +303,36 @@ int main() {
         if(evaluate(bestSolution) <= evaluate(solutions[bestAnt])) {
             bestSolution = solutions[bestAnt];
         }
-
     }
-
-
-    cout << evaluate(bestSolution) << endl;
-    for (int i = 0; i < parameters[0]; ++i) {
-        cout << "Period " << i + 1 << " (" << bestSolution[i].getNCredits() << "): ";
-        for (int j = 0; j < bestSolution[i].courses.size(); ++j) {
-            cout << courses[bestSolution[i].courses[j]].getName() << "-";
-        }
-        cout << endl;
-    }
-
 
     // Simulated Annealing
-    cout << "Starting Local Search" << endl;
-    iterations = 100;
-    int temp = 100;
+    iterations = 10000;
+    float temp = 100;
 
     vector<float> bestStatistics = getStatistics(bestSolution);
-    cout << "initial deviation: " << bestStatistics[1] << endl;
     vector<float> newStatistics;
     vector<Period> newSolution = bestSolution;
     vector<Period> auxSolution = newSolution;
+
+    // Updating availabilities
+    courses = prepForSA(courses);
+    for (int p = 0; p < parameters[0]; ++p) {
+        for (int c = 0; c < newSolution[p].courses.size(); ++c) {
+            int current = newSolution[p].courses[c];
+
+            for (unsigned int l = 0; l < courses[current].isPrerreqOf.size(); ++l) {
+                int aux = decoder[courses[current].isPrerreqOf[l]];
+                for (int m = 0; m <= p; ++m)
+                    courses[aux].probs[m] = 0;
+            }
+
+            for (unsigned int l = 0; l < courses[current].prerreq.size(); ++l) {
+                int aux = decoder[courses[current].prerreq[l]];
+                for (int m = p; m < parameters[0]; ++m)
+                    courses[aux].probs[m] = 0;
+            }
+        }
+    }
 
     for (int iter = 0; iter < iterations; ++iter) {
         int first = rand() % parameters[0];
@@ -332,33 +340,37 @@ int main() {
         while (first == second)
             second = rand() % parameters[0];
 
-        int third = rand() % int(newSolution[first].courses.size());
-        int courseToSwap = newSolution[first].courses[third];
-        if (courses[courseToSwap].probs[first] != 0) {
-            newSolution[second].courses.push_back(courseToSwap);
-            newSolution[second].addCourse();
-            newSolution[second].addCredit(courses[courseToSwap].getCredits());
-            newSolution[first].reduceCredit(courses[courseToSwap].getCredits());
-            newSolution[first].reduceCourse();
-            newSolution[first].courses.erase(newSolution[first].courses.begin() + third);
+        for (int k = 0; k < newSolution[first].courses.size(); ++k) {
+            int courseToSwap = newSolution[first].courses[k];
+            if (courses[courseToSwap].probs[second] != 0) {
+                newSolution[second].courses.push_back(courseToSwap);
+                newSolution[second].addCourse();
+                newSolution[second].addCredit(courses[courseToSwap].getCredits());
+                newSolution[first].reduceCredit(courses[courseToSwap].getCredits());
+                newSolution[first].reduceCourse();
+                newSolution[first].courses.erase(newSolution[first].courses.begin() + k);
 
-            // Updating availabilities
-            for (int p = 0; p < parameters[0]; ++p) {
-                for (int c = 0; c < newSolution[p].courses.size(); ++c) {
-                    int current = newSolution[p].courses[c];
+                // Updating availabilities
+                for (int p = 0; p < parameters[0]; ++p) {
+                    for (int c = 0; c < newSolution[p].courses.size(); ++c) {
+                        int current = newSolution[p].courses[c];
 
-                    for (unsigned int l = 0; l < courses[current].isPrerreqOf.size(); ++l) {
-                        int aux = decoder[courses[current].isPrerreqOf[l]];
-                        for (int m = 0; m <= p; ++m)
-                            courses[aux].probs[m] = 0;
-                    }
+                        for (unsigned int l = 0; l < courses[current].isPrerreqOf.size(); ++l) {
+                            int aux = decoder[courses[current].isPrerreqOf[l]];
+                            for (int m = 0; m <= p; ++m)
+                                courses[aux].probs[m] = 0;
+                        }
 
-                    for (unsigned int l = 0; l < courses[current].prerreq.size(); ++l) {
-                        int aux = decoder[courses[current].prerreq[l]];
-                        for (int m = p; m < parameters[0]; ++m)
-                            courses[aux].probs[m] = 0;
+                        for (unsigned int l = 0; l < courses[current].prerreq.size(); ++l) {
+                            int aux = decoder[courses[current].prerreq[l]];
+                            for (int m = p; m < parameters[0]; ++m)
+                                courses[aux].probs[m] = 0;
+                        }
                     }
                 }
+                if (temp > 1)
+                    temp -= 1;
+                break;
             }
         }
 
@@ -373,32 +385,6 @@ int main() {
         }
 
         auxSolution = newSolution;
-
-        if(temp > 1)
-            temp -= 1;
-
-        /*
-        int courseToSwap;
-        for (int i = 0; i < newSolution[upper].courses.size(); ++i) {
-            courseToSwap = newSolution[upper].courses[i];
-            if (courses[courseToSwap].probs[lower] != 0) {
-                newSolution[lower].courses.push_back(courseToSwap);
-                newSolution[lower].addCourse();
-                newSolution[lower].addCredit(courses[courseToSwap].getCredits());
-                newSolution[upper].reduceCredit(courses[courseToSwap].getCredits());
-                newSolution[upper].reduceCourse();
-                newSolution[upper].courses.erase(newSolution[upper].courses.begin() + i);
-            }
-        }*/
-
-        /*
-        vector<float> newStatistics = getStatistics(newSolution);
-        if (newStatistics[0] <= bestStatistics[0]){
-            if(newStatistics[1] <= bestStatistics[1]){
-                bestSolution = newSolution;
-                bestStatistics = newStatistics;
-            }
-        }*/
 
     }
 

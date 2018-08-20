@@ -22,6 +22,8 @@ public:
     std::vector<std::string> isPrerreqOf;
     Course(std::string);
     std::string getName();
+    void evaporate();
+    void stagnate();
     void updateProbs();
     float getTotalProbs();
     int getCredits();

@@ -19,7 +19,7 @@ std::string Course::getName() {
 }
 
 float Course::getTotalProbs(){
-    return this->totalProbs;
+    return float(this->totalProbs);
 }
 
 int Course::getCredits() {
@@ -48,7 +48,7 @@ void Course::addPheromone(int n){
 
 void Course::addHeuristic(int type) {
     int add = 3;
-    int n = this->heuristic.size();
+    int n = int(this->heuristic.size());
     if (type <= 0){
         for (int i = 0; i < n; ++i) {
             this->heuristic[i] = add;
@@ -73,6 +73,20 @@ void Course::addHeuristic(int type) {
         }
     }
 
+}
+
+void Course::evaporate() {
+    for (int i = 0; i < this->pheromones.size(); ++i) {
+        if (this->pheromones[i] > 2)
+            this->pheromones[i] -= 2;
+        else
+            this->pheromones[i] = 1;
+    }
+}
+
+void Course::stagnate() {
+    for (int i = 0; i < this->pheromones.size(); ++i)
+        this->pheromones[i] = 1;
 }
 
 
