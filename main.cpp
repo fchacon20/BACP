@@ -10,11 +10,17 @@
 
 using namespace std;
 
-int main() {
+int main(int argc, char** argv) {
 
     clock_t begin = clock();
     string line;
-    ifstream infile("/home/fchacon/CLionProjects/IAA/bacp10.txt");
+    string temporal(argv[1]);
+
+    // Using CLion
+    //ifstream infile("/home/fchacon/CLionProjects/IAA/" + "bacpTEL12.txt");
+
+    // Using Makefile
+    ifstream infile(temporal);
 
     // Getting first parameters (p, a, b, c, d)
     // p: number of periods
@@ -96,26 +102,32 @@ int main() {
     for (int c = 0; c < courses.size(); ++c)
         decoder.insert(pair<string, int>(courses[c].getName(), c));
 
-    // Initial Pheromones based on prerrequisites
+    // Heuristic Information based on prerrequisites
     for (int i = 0; i < courses.size(); ++i)
         courses[i].addHeuristic(int(courses[i].prerreq.size()-
                                             courses[i].isPrerreqOf.size()));
 
     // Ants parameters
-    int h = 15;
-    float alpha = 1;
-    float beta = 1;
-    int iterations = 1000;
-    int maxPheromone = 10;
+    int h = atoi(argv[2]);
+    float alpha = atoi(argv[3]);
+    float beta = atoi(argv[4]);
+    int iterations = atoi(argv[5]);
+    int maxPheromone = atoi(argv[6]);
+    unsigned int seed;
 
-    srand(3);
+    if(atoi(argv[7]) == 0)
+        seed = (unsigned int) time(NULL);
+    else
+        seed = (unsigned int) atoi(argv[7]);
+
+    srand(seed);
     vector<Period> bestSolution;
 
     for (int iteration = 0; iteration < iterations; ++iteration) {
 
-        if (iteration % 100)
+        if (iteration % 100 == 0)
             evaporate(courses);
-        if (iteration % 200)
+        if (iteration % 200 == 0)
             stagnate(courses);
 
         vector<vector<Period>> solutions;
@@ -159,7 +171,6 @@ int main() {
                 }
 
                 if (current.getTotalProbs() == 0 || index >= parameters[0]) {
-                    //cout << l + 1 << ".- Curso " << current.getName() << " no fue asignado." << endl;
                     for (unsigned int i = 0; i < current.isPrerreqOf.size(); ++i)
                         for (int j = 0; j < courses.size(); ++j)
                             if (courses[j].getName().compare(current.isPrerreqOf[i]) == 0) {
@@ -168,7 +179,6 @@ int main() {
                                 break;
                             }
                 } else {
-                    //cout << l + 1 << ".- Curso " << current.getName() << " asignado al periodo " << index << endl;
                     periods[index].courses.push_back(l);
                     periods[index].addCourse();
                     periods[index].addCredit(current.getCredits());
@@ -218,7 +228,7 @@ int main() {
         }
 
         // Local Search
-        for (int m = 0; m < 1; ++m) {
+        for (int m = 0; m < 10; ++m) {
             int upper = 0;
             int lower = 0;
             int c;
@@ -241,6 +251,26 @@ int main() {
                     solutions[bestAnt][upper].reduceCredit(courses[courseToSwap].getCredits());
                     solutions[bestAnt][upper].reduceCourse();
                     solutions[bestAnt][upper].courses.erase(solutions[bestAnt][upper].courses.begin() + i);
+
+                    // Updating availabilities
+                    for (int p = 0; p < parameters[0]; ++p) {
+                        for (int course = 0; course < solutions[bestAnt][p].courses.size(); ++course) {
+                            int current = solutions[bestAnt][p].courses[course];
+
+                            for (unsigned int l = 0; l < courses[current].isPrerreqOf.size(); ++l) {
+                                int aux = decoder[courses[current].isPrerreqOf[l]];
+                                for (int i1 = 0; i1 <= p; ++i1)
+                                    courses[aux].probs[i1] = 0;
+                            }
+
+                            for (unsigned int l = 0; l < courses[current].prerreq.size(); ++l) {
+                                int aux = decoder[courses[current].prerreq[l]];
+                                for (int p1 = p; p1 < parameters[0]; ++p1)
+                                    courses[aux].probs[p1] = 0;
+                            }
+                        }
+                    }
+
                     break;
                 }
             }
@@ -259,48 +289,12 @@ int main() {
         for (int i = 0; i < parameters[0]; ++i) {
             vector<int> aux = solutions[worstAnt][i].courses;
             for (int j = 0; j < aux.size(); ++j) {
-                if(courses[aux[j]].pheromones[i] > 0)
+                if (courses[aux[j]].pheromones[i] > 0)
                     courses[aux[j]].pheromones[i] -= 1;
             }
         }
 
-        // Detecting stagnation
-        /*
-        if(iteration != 0) {
-            int isStagnated = true;
-            for (int i = 0; i < parameters[0]; ++i) {
-                if(solutions[bestAnt][i].courses.size() == solutions[worstAnt][i].courses.size()) {
-                    for (int j = 0; j < solutions[bestAnt][i].courses.size(); ++j) {
-                        if (solutions[worstAnt][i].courses[j] == solutions[bestAnt][i].courses[j])
-                            continue;
-                        else
-                            isStagnated = false;
-                    }
-                } else{
-                    isStagnated = false;
-                    break;
-                }
-            }
-
-            if (isStagnated) {
-                cout << "they are equals in iteration " << iteration << endl;
-
-                cout << "Period " <<  1 << " (" << solutions[worstAnt][0].getNCredits() << "): ";
-                for (int j = 0; j < solutions[worstAnt][0].courses.size(); ++j) {
-                    cout << courses[solutions[worstAnt][0].courses[j]].getName() << "-";
-                }
-                cout << endl;
-
-                cout << "Period " <<  1 << " (" << solutions[bestAnt][0].getNCredits() << "): ";
-                for (int j = 0; j < solutions[bestAnt][0].courses.size(); ++j) {
-                    cout << courses[solutions[bestAnt][0].courses[j]].getName() << "-";
-                }
-                cout << endl;
-
-            }
-        }*/
-
-        if(evaluate(bestSolution) <= evaluate(solutions[bestAnt])) {
+        if (evaluate(bestSolution) <= evaluate(solutions[bestAnt])) {
             bestSolution = solutions[bestAnt];
         }
     }
@@ -377,10 +371,10 @@ int main() {
         newStatistics = getStatistics(newSolution);
         double r = ((double) rand() / (RAND_MAX));
         float dif = newStatistics[1] - bestStatistics[1];
-        if(newStatistics[1] < bestStatistics[1]){
+        if (newStatistics[1] < bestStatistics[1]) {
             bestSolution = newSolution;
             bestStatistics = newStatistics;
-        }else if(exp(dif/temp) > r){
+        } else if (exp(dif / temp) > r) {
             newSolution = auxSolution;
         }
 
@@ -388,8 +382,6 @@ int main() {
 
     }
 
-
-    cout << evaluate(bestSolution) << endl;
     for (int i = 0; i < parameters[0]; ++i) {
         cout << "Period " << i + 1 << " (" << bestSolution[i].getNCredits() << "): ";
         for (int j = 0; j < bestSolution[i].courses.size(); ++j) {
@@ -398,12 +390,15 @@ int main() {
         cout << endl;
     }
 
+    cout << "Cursos asignados: " << evaluate(bestSolution) << " de " << courses.size() << endl;
+
     bestStatistics = getStatistics(bestSolution);
-    cout << "final deviation: " << bestStatistics[1] << endl;
+    cout << "Final Standard Deviation: " << bestStatistics[1] << endl;
 
     clock_t end = clock();
-    double time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
+    double time_spent = (double) (end - begin) / CLOCKS_PER_SEC;
     cout << "Tiempo de ejecucion: " << time_spent << " segundos" << endl;
+
 
 
     return 0;
